@@ -16,8 +16,13 @@ const pool = mysql.createPool({
 });
 //routes
 app.get('/', (req, res) => {
-   res.send('Hello Express app!')
+   res.render('home.ejs')
 });
+
+app.get('/search', (req, res) => {
+   res.render('search.ejs')
+});
+
 app.get("/dbTest", async(req, res) => {
    try {
         const [rows] = await pool.query("SELECT CURDATE()");
