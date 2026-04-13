@@ -8,7 +8,33 @@
 </head>
 <body>
     <%- include('partials/navbar.ejs')%>
+    <h1>Search Results</h1>
     This is where search results will go...
+    <p><a href="/">Back to Home</a></p>
+    <% if (query) { %>
+        <p>Results for: <strong><%= query %></strong></p>
+    <% } %>
+
+    <% if (error) { %>
+        <p><%= error %></p>
+    <% } %>
+
+    <% if (movies && movies.length > 0) { %>
+        <% movies.forEach(movie => { %>
+            <div class="movie-card">
+                <h2><%= movie.title %></h2>
+                <img src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>" alt="<%= movie.title %> poster">
+                <p><strong>TMDB ID:</strong> <%= movie.id %></p>
+                <p><strong>Release Date:</strong> <%= movie.release_date || 'N/A' %></p>
+                <p><strong>Rating:</strong> <%= movie.vote_average ?? 'N/A' %></p>
+                <p><%= movie.overview || 'No overview available.' %></p>
+            </div>
+            <hr>
+        <% }) %>
+    <% } else if (!error) { %>
+            <p>No results found.</p>
+        <% } %>  
+    
     <%- include('partials/footer.ejs')%>
 </body>
 </html>
