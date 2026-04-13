@@ -14,6 +14,7 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     waitForConnections: true
 });
+
 //routes
 app.get('/', (req, res) => {
    res.render('home.ejs')
