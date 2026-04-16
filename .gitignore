@@ -23,3 +23,6 @@ Thumbs.db
 # Windows system files
 ehthumbs.db
 Desktop.ini
+
+node_modules/
+.env
