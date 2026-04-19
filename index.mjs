@@ -1,6 +1,11 @@
 import express from 'express';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+
+//added these imports for user Authentication - Joseph
+import session from 'express-session';
+import bcrypt from 'bcrypt';
+
 dotenv.config();
 
 const app = express();
@@ -9,6 +14,14 @@ app.use(express.static('public'));
 //for Express to get values using the POST method
 app.use(express.urlencoded({extended:true}));
 //setting up database connection pool, replace values in red
+
+//added session middleware for user authentication - Joseph
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'supersecretkey',
+  resave: false,
+  saveUninitialized: false
+}));
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -16,6 +29,15 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   connectionLimit: 10,
   waitForConnections: true
+});
+
+// middleware to check if user is authenticated - Joseph
+function isAuthenticated(req, res, next) {
+  if (req.session.userId) return next();
+  res.redirect('/login');
+}
+app.get('/watchlist', isAuthenticated, (req, res) => {
+  res.send('Protected page');
 });
 
 //routes
@@ -37,6 +59,30 @@ app.get('/search', async (req, res) => {
       error: 'Please enter a movie title.'
     });
   }
+
+
+//added routes for user authentication - Joseph
+app.get('/signup', (req, res) => {
+  res.render('signup.ejs', { error: null });
+});
+
+// app.post('/signup', async (req, res) => {
+//   ...
+// });
+
+app.get('/login', (req, res) => {
+  res.render('login.ejs', { error: null });
+});
+
+// app.post('/login', async (req, res) => {
+//   ...
+// });
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
 
   try {
     const url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
