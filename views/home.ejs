@@ -6,12 +6,25 @@
     <title>Final Project</title>
     <link href="/css/styles.css" rel="stylesheet">
 </head>
+
 <body>
     <%- include('partials/navbar.ejs')%>
+
+    <div style="margin: 10px;">
+        <% if (userName) { %>
+            <span>Welcome, <strong><%= userName %></strong>!</span>
+            <a href="/logout">Logout</a>
+        <% } else { %>
+            <a href="/login">Login</a> |
+            <a href="/signup">Sign Up</a>
+        <% } %>
+    </div>
+
     <form action="/search" method="GET">
         <input type="text" name="query" placeholder="Search for a movie" required>
         <button type="submit">Search</button>
     </form>
+
     <%- include('partials/footer.ejs')%>
 </body>
 </html>
