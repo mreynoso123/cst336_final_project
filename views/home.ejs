@@ -3,15 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Final Project</title>
+    <title>CineTrack</title>
     <link href="/css/styles.css" rel="stylesheet">
 </head>
 <body>
-    <%- include('partials/navbar.ejs')%>
-    <form action="/search" method="GET">
-        <input type="text" name="query" placeholder="Search for a movie" required>
-        <button type="submit">Search</button>
-    </form>
-    <%- include('partials/footer.ejs')%>
+    <%- include('partials/navbar.ejs') %>
+
+    <main class="container">
+        <h1>CineTrack</h1>
+        <p>Search for a movie and add it to your watchlist.</p>
+
+        <form action="/search" method="GET" class="search-form">
+            <input type="text" name="query" placeholder="Search for a movie" required>
+            <button type="submit">Search</button>
+        </form>
+
+        <p><a href="/watchlist">View My Watchlist</a></p>
+    </main>
+
+    <%- include('partials/footer.ejs') %>
 </body>
 </html>

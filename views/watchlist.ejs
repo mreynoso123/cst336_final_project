@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Watchlist</title>
+  <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+  <%- include('partials/navbar.ejs') %>
+
+  <main class="container">
+    <h1>My Watchlist</h1>
+    <p><a href="/">Back to Home</a></p>
+
+    <form action="/watchlist" method="GET" class="filter-form">
+      <label for="status">Status:</label>
+      <select name="status" id="status">
+        <option value="">All</option>
+        <option value="Want to Watch" <%= filters.status === 'Want to Watch' ? 'selected' : '' %>>Want to Watch</option>
+        <option value="Watched" <%= filters.status === 'Watched' ? 'selected' : '' %>>Watched</option>
+      </select>
+
+      <label for="genre">Genre:</label>
+      <select name="genre" id="genre">
+        <option value="">All Genres</option>
+        <% genreOptions.forEach(option => { %>
+          <option value="<%= option %>" <%= filters.genre === option ? 'selected' : '' %>>
+            <%= option %>
+          </option>
+        <% }) %>
+      </select>
+
+      <label for="minRating">Minimum Rating:</label>
+      <select name="minRating" id="minRating">
+        <option value="">Any</option>
+        <option value="1" <%= filters.minRating === '1' ? 'selected' : '' %>>1+</option>
+        <option value="2" <%= filters.minRating === '2' ? 'selected' : '' %>>2+</option>
+        <option value="3" <%= filters.minRating === '3' ? 'selected' : '' %>>3+</option>
+        <option value="4" <%= filters.minRating === '4' ? 'selected' : '' %>>4+</option>
+        <option value="5" <%= filters.minRating === '5' ? 'selected' : '' %>>5</option>
+      </select>
+
+      <button type="submit">Filter</button>
+    </form>
+
+    <% if (movies.length === 0) { %>
+      <p>No movies found in your watchlist.</p>
+    <% } %>
+
+    <% movies.forEach(movie => { %>
+      <div class="movie-card">
+        <h2><%= movie.title %></h2>
+
+        <% if (movie.poster_path) { %>
+          <img
+            src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>"
+            alt="<%= movie.title %> poster"
+          >
+        <% } %>
+
+        <p><strong>Release Date:</strong> <%= movie.release_date || 'N/A' %></p>
+        <p><strong>Genres:</strong> <%= movie.genre || 'N/A' %></p>
+        <p><strong>Status:</strong> <%= movie.status %></p>
+        <p><strong>Your Rating:</strong> <%= movie.user_rating ?? 'Not rated' %></p>
+        <p><%= movie.overview || 'No overview available.' %></p>
+
+        <form action="/watchlist/update" method="POST" class="inline-form">
+          <input type="hidden" name="id" value="<%= movie.id %>">
+
+          <label for="status-<%= movie.id %>">Status:</label>
+          <select name="status" id="status-<%= movie.id %>">
+            <option value="Want to Watch" <%= movie.status === 'Want to Watch' ? 'selected' : '' %>>Want to Watch</option>
+            <option value="Watched" <%= movie.status === 'Watched' ? 'selected' : '' %>>Watched</option>
+          </select>
+
+          <label for="rating-<%= movie.id %>">Rating:</label>
+          <select name="user_rating" id="rating-<%= movie.id %>">
+            <option value="">No Rating</option>
+            <option value="1" <%= movie.user_rating == 1 ? 'selected' : '' %>>1</option>
+            <option value="2" <%= movie.user_rating == 2 ? 'selected' : '' %>>2</option>
+            <option value="3" <%= movie.user_rating == 3 ? 'selected' : '' %>>3</option>
+            <option value="4" <%= movie.user_rating == 4 ? 'selected' : '' %>>4</option>
+            <option value="5" <%= movie.user_rating == 5 ? 'selected' : '' %>>5</option>
+          </select>
+
+          <button type="submit">Update</button>
+        </form>
+
+        <form action="/watchlist/delete" method="POST" class="inline-form">
+          <input type="hidden" name="id" value="<%= movie.id %>">
+          <button type="submit" class="danger-btn">Remove</button>
+        </form>
+      </div>
+    <% }) %>
+  </main>
+
+  <%- include('partials/footer.ejs') %>
+</body>
+</html>
