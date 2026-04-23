@@ -11,7 +11,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DEMO_USER_ID = 1;
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -45,16 +44,77 @@ app.get('/', (req, res) => {
   res.render('home.ejs', { userName: req.session.userName || null });
 });
 
-app.get('/watchlist', isAuthenticated, (req, res) => {
-  res.send('Protected page');
-});
-
 app.get('/signup', (req, res) => {
   res.render('signup.ejs', { error: null });
 });
 
 app.get('/login', (req, res) => {
   res.render('login.ejs', { error: null });
+});
+
+app.post('/signup', async (req, res) => {
+  const { userName, password } = req.body;
+
+  if (!userName || !password) {
+    return res.render('signup.ejs', { error: 'All fields are required.' });
+  }
+
+  try {
+    const [existingUsers] = await pool.query(
+      'SELECT userId FROM Users WHERE userName = ?',
+      [userName]
+    );
+
+    if (existingUsers.length > 0) {
+      return res.render('signup.ejs', { error: 'Username already exists.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      'INSERT INTO Users (userName, password) VALUES (?, ?)',
+      [userName, hashedPassword]
+    );
+
+    res.redirect('/login');
+  } catch (err) {
+    console.error('Signup error:', err);
+    res.render('signup.ejs', { error: 'Error creating account.' });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  const { userName, password } = req.body;
+
+  if (!userName || !password) {
+    return res.render('login.ejs', { error: 'All fields are required.' });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT userId, userName, password FROM Users WHERE userName = ?',
+      [userName]
+    );
+
+    if (rows.length === 0) {
+      return res.render('login.ejs', { error: 'Invalid username or password.' });
+    }
+
+    const user = rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.render('login.ejs', { error: 'Invalid username or password.' });
+    }
+
+    req.session.userId = user.userId;
+    req.session.userName = user.userName;
+
+    res.redirect('/');
+  } catch (err) {
+    console.error('Login error:', err);
+    res.render('login.ejs', { error: 'Login failed.' });
+  }
 });
 
 app.get('/logout', (req, res) => {
@@ -70,8 +130,6 @@ app.get('/search', async (req, res) => {
   if (!query) {
     return res.render('search.ejs', {
       movies: [],
-      error: 'Please enter a movie title.',
-      query: ''
       error: 'Please enter a movie title.',
       query: ''
     });
@@ -107,7 +165,7 @@ app.get('/search', async (req, res) => {
   }
 });
 
-app.post('/watchlist/add', async (req, res) => {
+app.post('/watchlist/add', isAuthenticated, async (req, res) => {
   const {
     movie_id,
     title,
@@ -126,7 +184,7 @@ app.post('/watchlist/add', async (req, res) => {
         poster_path = VALUES(poster_path),
         release_date = VALUES(release_date),
         overview = VALUES(overview)`,
-      [DEMO_USER_ID, movie_id, title, poster_path, release_date, overview]
+      [req.session.userId, movie_id, title, poster_path, release_date, overview]
     );
 
     res.redirect('/watchlist');
@@ -136,11 +194,11 @@ app.post('/watchlist/add', async (req, res) => {
   }
 });
 
-app.get('/watchlist', async (req, res) => {
+app.get('/watchlist', isAuthenticated, async (req, res) => {
   const { status, minRating } = req.query;
 
   let sql = `SELECT * FROM watchlist WHERE user_id = ?`;
-  const params = [DEMO_USER_ID];
+  const params = [req.session.userId];
 
   if (status) {
     sql += ` AND status = ?`;
@@ -170,7 +228,7 @@ app.get('/watchlist', async (req, res) => {
   }
 });
 
-app.post('/watchlist/update', async (req, res) => {
+app.post('/watchlist/update', isAuthenticated, async (req, res) => {
   const { id, status, user_rating } = req.body;
 
   try {
@@ -181,7 +239,7 @@ app.post('/watchlist/update', async (req, res) => {
       `UPDATE watchlist
        SET status = ?, user_rating = ?
        WHERE id = ? AND user_id = ?`,
-      [status, parsedRating, id, DEMO_USER_ID]
+      [status, parsedRating, id, req.session.userId]
     );
 
     res.redirect('/watchlist');
@@ -191,13 +249,13 @@ app.post('/watchlist/update', async (req, res) => {
   }
 });
 
-app.post('/watchlist/delete', async (req, res) => {
+app.post('/watchlist/delete', isAuthenticated, async (req, res) => {
   const { id } = req.body;
 
   try {
     await pool.query(
       `DELETE FROM watchlist WHERE id = ? AND user_id = ?`,
-      [id, DEMO_USER_ID]
+      [id, req.session.userId]
     );
 
     res.redirect('/watchlist');

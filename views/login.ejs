@@ -4,28 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
+  <link href="/css/styles.css" rel="stylesheet">
 </head>
 <body>
-  <h1>Login</h1>
+  <%- include('partials/navbar.ejs') %>
 
-  <% if (error) { %>
-    <p style="color:red;"><%= error %></p>
-  <% } %>
+  <main class="container auth-wrap">
+    <section class="auth-card">
+      <h1>Login</h1>
+      <p class="muted">Welcome back. Sign in to manage your watchlist.</p>
 
-  <form method="POST" action="/login">
-    <div>
-      <label for="userName">Username:</label>
-      <input type="text" id="userName" name="userName" required>
-    </div>
+      <% if (error) { %>
+        <p class="error-message"><%= error %></p>
+      <% } %>
 
-    <div>
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" required>
-    </div>
+      <form method="POST" action="/login" class="stack-form">
+        <div class="field-group">
+          <label for="userName">Username</label>
+          <input type="text" id="userName" name="userName" required>
+        </div>
 
-    <button type="submit">Login</button>
-  </form>
+        <div class="field-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
 
-  <p>Don't have an account? <a href="/signup">Sign up</a></p>
+        <button type="submit">Login</button>
+      </form>
+
+      <p>Don't have an account? <a href="/signup">Create one</a></p>
+    </section>
+  </main>
+
+  <%- include('partials/footer.ejs') %>
 </body>
 </html>
