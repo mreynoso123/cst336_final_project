@@ -5,9 +5,13 @@
       <a href="/">Home</a>
       <a href="/search?query=">Search</a>
       <a href="/watchlist">My Watchlist</a>
-      <a href="/login">Login</a>
-      <a href="/signup">Sign Up</a>
-      <a href="/logout">Logout</a>
+      <% if (userName) { %>
+        <span class="nav-user">Hi, <%= userName %></span>
+        <a href="/logout">Logout</a>
+      <% } else { %>
+        <a href="/login">Login</a>
+        <a href="/signup">Sign Up</a>
+      <% } %>
     </div>
   </div>
 </nav>
