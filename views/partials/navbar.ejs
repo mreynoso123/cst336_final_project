@@ -6,8 +6,9 @@
       <a href="/search?query=">Search</a>
       <a href="/watchlist">My Watchlist</a>
       <% if (userName) { %>
-        <span class="nav-user">Hi, <%= userName %></span>
+        <a href="/profile">Edit Profile</a>
         <a href="/logout">Logout</a>
+        <span class="nav-user">Hi, <%= userName %></span>
       <% } else { %>
         <a href="/login">Login</a>
         <a href="/signup">Sign Up</a>

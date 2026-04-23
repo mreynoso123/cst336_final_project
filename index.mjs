@@ -57,6 +57,10 @@ app.get('/login', (req, res) => {
   res.render('login.ejs', { error: null });
 });
 
+app.get('/profile', (req, res) => {
+  res.render('profile.ejs');
+});
+
 app.post('/signup', async (req, res) => {
   const { userName, password } = req.body;
 
