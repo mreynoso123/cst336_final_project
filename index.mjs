@@ -23,6 +23,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }));
+  
+app.use((req, res, next) => {
+  res.locals.userName = req.session.userName || null;
+  next();
+});
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -41,7 +46,7 @@ function isAuthenticated(req, res, next) {
 
 // routes
 app.get('/', (req, res) => {
-  res.render('home.ejs', { userName: req.session.userName || null });
+  res.render('home.ejs');
 });
 
 app.get('/signup', (req, res) => {

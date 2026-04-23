@@ -109,6 +109,12 @@ a:hover {
   background: rgba(255, 255, 255, 0.14);
 }
 
+.nav-user {
+  color: var(--ink-on-dark);
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
 .hero {
   background: linear-gradient(120deg, #111d2f 0%, #233044 52%, #2c425e 100%);
   color: var(--ink-on-dark);
