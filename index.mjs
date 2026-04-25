@@ -70,15 +70,16 @@ app.get('/profile', isAuthenticated, async (req, res) => {
   res.render('profile.ejs', { userInfo });
 });
 
-app.get('/updateProfile', async (req, res) => {
-  let userId = req.query.userId;
+app.get('/updateProfile', isAuthenticated, async (req, res) => {
+  let userId = req.session.userId;
   let sql = `SELECT * FROM Users WHERE userId = ?`;
   const [userInfo] = await pool.query(sql, [userId]);
   res.render('updateProfile.ejs', { userInfo, error: null });
 });
 
-app.post('/updateProfile', async (req, res) => {
-  let { userId, userName, password } = req.body;
+app.post('/updateProfile', isAuthenticated, async (req, res) => {
+  let { userName, password } = req.body;
+  let userId = req.session.userId;
 
   let sqlUser = `SELECT * FROM Users WHERE userId = ?`;
 
