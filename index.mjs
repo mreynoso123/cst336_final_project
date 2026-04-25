@@ -57,16 +57,27 @@ app.get('/login', (req, res) => {
   res.render('login.ejs', { error: null });
 });
 
-app.get('/profile', isAuthenticated, (req, res) => {
+app.get('/profile', isAuthenticated, async (req, res) => {
   //TODO: update userName, UPDATE `Users` SET `userName` = 'Mauricio' WHERE `Users`.`userId` = 2;
   //TODO: How would you update the password when there's bcrypt??
   //TODO: update password, UPDATE `Users` SET `password` = 'test123' WHERE `Users`.`userId` = 2;
   //TODO: update watchlistName, UPDATE `watchlist` SET `watchlistName` = 'New Watchlist' WHERE `watchlist`.`user_id` = 2;
   //TODO: delete watchlist, DELETE FROM `watchlist` WHERE `watchlist`.`user_id` = 2;
   //TODO: delete userId (which would delete the account), DELETE FROM `Users` WHERE `Users`.`userId` = 2;
-  
-  res.render('profile.ejs');
+
+  let sql = `SELECT * FROM Users WHERE userId = ?`;
+  const [userInfo] = await pool.query(sql, [req.session.userId]);
+  res.render('profile.ejs', { userInfo });
 });
+
+app.get('/updateProfile', async (req, res) => {
+  let userId = req.query.userId;
+  let sql = `SELECT * FROM Users WHERE userId = ?`;
+  const [userInfo] = await pool.query(sql, [userId]);
+  res.render('updateProfile.ejs', { userInfo });
+});
+
+
 
 app.post('/signup', async (req, res) => {
   const { userName, password } = req.body;

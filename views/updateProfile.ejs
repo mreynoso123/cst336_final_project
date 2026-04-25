@@ -3,21 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Page</title>
+    <title>Edit Profile</title>
     <link href="/css/styles.css" rel="stylesheet">
 </head>
 <body>
     <%- include('partials/navbar.ejs') %>
+    <%=userInfo[0].userName%>
+    <%=userInfo[0].password%>
+    <%=userInfo[0].watchlistName%>
+    <%=userInfo[0].watchlistId%>
+    <%=userInfo[0].userId%>
+    
+
+
+
+
+
+
+    
     update userName<br>
     update password<br>
     update watchlistName<br>
     delete watchlist<br>
     delete userId (which would delete the account)<br>
-
-    User: <%= userInfo[0].userName %><br>
-    
-    <a href="/updateProfile?userId=<%= userInfo[0].userId %>">Update Profile</a>
-    <a href="/deleteProfile?userId=<%= userInfo[0].userId %>">Delete Profile</a>
     <%- include('partials/footer.ejs') %>
 </body>
 </html>
