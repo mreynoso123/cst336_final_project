@@ -25,7 +25,6 @@
         <p class="error-message"><%= error %></p>
     <% } %>
 
-
     <form action="/updateProfile" method="POST">
         <label for="userName">Username: </label>
         <input id="userName" placeholder="Enter new user name" name="userName" value="<%= userInfo[0].userName %>" required>
@@ -34,10 +33,6 @@
         <button type="submit">Update Profile</button>
     </form>
 
-
-
-    
-    
     <%- include('partials/footer.ejs') %>
 </body>
 </html>

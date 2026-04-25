@@ -58,12 +58,9 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/profile', isAuthenticated, async (req, res) => {
-  //TODO: update userName, UPDATE `Users` SET `userName` = 'Mauricio' WHERE `Users`.`userId` = 2;
-  //TODO: How would you update the password when there's bcrypt??
-  //TODO: update password, UPDATE `Users` SET `password` = 'test123' WHERE `Users`.`userId` = 2;
   //TODO: update watchlistName, UPDATE `watchlist` SET `watchlistName` = 'New Watchlist' WHERE `watchlist`.`user_id` = 2;
   //TODO: delete watchlist, DELETE FROM `watchlist` WHERE `watchlist`.`user_id` = 2;
-  //TODO: delete userId (which would delete the account), DELETE FROM `Users` WHERE `Users`.`userId` = 2;
+  //TODO: delete userId will also need to delete the watchlist
 
   let sql = `SELECT * FROM Users WHERE userId = ?`;
   const [userInfo] = await pool.query(sql, [req.session.userId]);
@@ -113,8 +110,25 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/deleteProfile', isAuthenticated, async (req, res) => {
+  let userId = req.session.userId;
+  let sql = `SELECT * FROM Users WHERE userId = ?`;
+  const [userInfo] = await pool.query(sql, [userId]);
+  res.render('deleteProfile.ejs', { userInfo });
+});
 
+app.post('/deleteProfile', isAuthenticated, async (req, res) => {
+  const userId = req.session.userId;
+  await pool.query('DELETE FROM Users WHERE userId = ?', [userId]);
 
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Session destroy error:', err);
+      return res.redirect('/profile'); // or show an error page
+    }
+    res.redirect('/login');
+  });
+});
 
 app.post('/signup', async (req, res) => {
   const { userName, password } = req.body;
