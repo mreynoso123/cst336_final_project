@@ -74,8 +74,44 @@ app.get('/updateProfile', async (req, res) => {
   let userId = req.query.userId;
   let sql = `SELECT * FROM Users WHERE userId = ?`;
   const [userInfo] = await pool.query(sql, [userId]);
-  res.render('updateProfile.ejs', { userInfo });
+  res.render('updateProfile.ejs', { userInfo, error: null });
 });
+
+app.post('/updateProfile', async (req, res) => {
+  let { userId, userName, password } = req.body;
+
+  let sqlUser = `SELECT * FROM Users WHERE userId = ?`;
+
+  // check if userName or password is empty
+  if (!userName?.trim() || !password?.trim()) {
+    const [userInfo] = await pool.query(sqlUser, [userId]);
+    return res.render('updateProfile.ejs', { userInfo, error: 'All fields are required.' });
+  }
+
+  try{
+    const [existingUsers] = await pool.query(
+      // check if userName already exists and is not the same user
+      'SELECT userId FROM Users WHERE userName = ? AND userId <> ?',
+      [userName, userId]
+    );
+    if (existingUsers.length > 0) {
+      const [userInfo] = await pool.query(sqlUser, [userId]);
+      return res.render('updateProfile.ejs', { userInfo, error: 'Username already exists.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query(
+      'UPDATE Users SET userName = ?, password = ? WHERE userId = ?',
+      [userName, hashedPassword, userId]
+    );
+    res.redirect('/profile');
+  } catch (err) {
+    console.error('Update profile error:', err);
+    const [userInfo] = await pool.query(sqlUser, [userId]);
+    res.render('updateProfile.ejs', { userInfo, error: 'Error updating profile.' });
+  }
+});
+
 
 
 

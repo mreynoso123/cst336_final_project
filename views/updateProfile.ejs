@@ -8,24 +8,37 @@
 </head>
 <body>
     <%- include('partials/navbar.ejs') %>
-    <%=userInfo[0].userName%>
-    <%=userInfo[0].password%>
-    <%=userInfo[0].watchlistName%>
+    <%=userInfo[0].userName%><br>
+    <!-- <%=userInfo[0].watchlistName%>
     <%=userInfo[0].watchlistId%>
-    <%=userInfo[0].userId%>
-    
-
-
-
-
-
-
+    <%=userInfo[0].userId%> -->
     
     update userName<br>
     update password<br>
     update watchlistName<br>
     delete watchlist<br>
     delete userId (which would delete the account)<br>
+
+    <h1>Update Profile</h1>
+
+    <% if (error) { %>
+        <p class="error-message"><%= error %></p>
+    <% } %>
+
+
+    <form action="/updateProfile" method="POST">
+        <input type="hidden" name="userId" value="<%= userInfo[0].userId %>">
+        <label for="userName">Username: </label>
+        <input id="userName" placeholder="Enter new user name" name="userName" value="<%= userInfo[0].userName %>" required>
+        <label for="password">Password: </label>
+        <input id="password" placeholder="Enter new password" name="password" value="" required><br><br>
+        <button type="submit">Update Profile</button>
+    </form>
+
+
+
+    
+    
     <%- include('partials/footer.ejs') %>
 </body>
 </html>
