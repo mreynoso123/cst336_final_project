@@ -58,13 +58,40 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/profile', isAuthenticated, async (req, res) => {
-  //TODO: update watchlistName, UPDATE `watchlist` SET `watchlistName` = 'New Watchlist' WHERE `watchlist`.`user_id` = 2;
-  //TODO: delete watchlist, DELETE FROM `watchlist` WHERE `watchlist`.`user_id` = 2;
-  //TODO: delete userId will also need to delete the watchlist
+  const userId = req.session.userId;
 
-  let sql = `SELECT * FROM Users WHERE userId = ?`;
-  const [userInfo] = await pool.query(sql, [req.session.userId]);
-  res.render('profile.ejs', { userInfo });
+  try {
+    const [userRows] = await pool.query(
+      'SELECT * FROM Users WHERE userId = ?',
+      [userId]
+    );
+
+    const [watchlistInfo] = await pool.query(
+      'SELECT * FROM watchlist WHERE userId = ?',
+      [userId]
+    );
+
+    const userInfo = userRows[0];
+
+    const totalWatchlists = watchlistInfo.length;
+    const watchedCount = watchlistInfo.filter(
+      item => item.watchStatus === 'Watched'
+    ).length;
+    const ratedCount = watchlistInfo.filter(
+      item => item.rating !== null
+    ).length;
+
+    res.render('profile.ejs', {
+      userInfo,
+      watchlistInfo,
+      totalWatchlists,
+      watchedCount,
+      ratedCount
+    });
+  } catch (err) {
+    console.error('Profile summary error:', err);
+    res.redirect('/');
+  }
 });
 
 app.get('/updateProfile', isAuthenticated, async (req, res) => {
@@ -72,11 +99,9 @@ app.get('/updateProfile', isAuthenticated, async (req, res) => {
 
   let sql = `SELECT * FROM Users WHERE userId = ?`;
   const [userRows] = await pool.query(sql, [userId]);
-
+  let userInfo = userRows[0];
   let watchlistSql = `SELECT * FROM watchlist WHERE userId = ?`;
   const [watchlistInfo] = await pool.query(watchlistSql, [userId]);
-
-  let userInfo = userRows[0];
 
   res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: null });
 });

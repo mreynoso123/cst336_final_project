@@ -347,6 +347,37 @@ button:hover,
   margin: 0;
 }
 
+.profile-actions {
+  margin-top: 16px;
+}
+
+.watchlist-summary-card {
+  background: var(--surface-soft);
+  border: 1px solid #d8cebf;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.watchlist-summary-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.watchlist-summary-item {
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-weight: 700;
+  color: #273245;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
