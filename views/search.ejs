@@ -38,6 +38,11 @@
                     <p><strong>Genres:</strong> <%= movie.genre_names || 'N/A' %></p>
                     <p><strong>Rating:</strong> <%= movie.vote_average ?? 'N/A' %></p>
                     <p><%= movie.overview || 'No overview available.' %></p>
+                    
+                    <div class="row-btn">
+                    <form action="/movie/<%= movie.id %>" method="GET">
+                    <button>View Details</button>
+                    </form>
 
                     <form action="/watchlist/add" method="POST">
                         <input type="hidden" name="movie_id" value="<%= movie.id %>">
@@ -48,6 +53,7 @@
                         <input type="hidden" name="genre" value="<%= movie.genre_names || '' %>">
                         <button type="submit">Add to Watchlist</button>
                     </form>
+                    </div>
                 </div>
             <% }) %>
         <% } else if (!error) { %>

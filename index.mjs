@@ -165,6 +165,29 @@ app.post('/watchlist/delete', async (req, res) => {
   }
 });
 
+app.get('/movie/:id', async (req, res) => {
+  let movieId = req.params.id;
+
+  let details = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${process.env.TMDB_API_KEY}`); 
+  let credits = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${process.env.TMDB_API_KEY}`);
+  let videos = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${process.env.TMDB_API_KEY}`);
+
+  let detailsData = await details.json();
+  let creditsData = await credits.json();
+  let videosData = await videos.json();
+
+  let trailer = null; //in case no trailer is found
+  for (let video of videosData.results) {
+    if (video.type === 'Trailer' && video.site === 'YouTube') {
+      trailer = video;
+      break;
+    }
+  }
+
+  res.render('movieDetails.ejs', {details: detailsData, cast: creditsData.cast, trailer: trailer});
+});
+
+
 app.get('/dbTest', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT CURDATE() AS today');
@@ -173,6 +196,17 @@ app.get('/dbTest', async (req, res) => {
     console.error('Database error:', err);
     res.status(500).send('Database error!');
   }
+});
+
+app.get('/searchBy', async(req, res) => {
+    let authorId = req.query.authorId;
+    let sql = `SELECT quote, firstName, lastName, authorId
+    FROM quotes 
+    NATURAL JOIN authors 
+    WHERE authorId = ?;`;
+    let sqlParams =[ authorId ];
+    const [rows] = await pool.query(sql, [authorId]);
+    res.render('quotes.ejs', {rows})
 });
 
 app.listen(PORT, () => {
