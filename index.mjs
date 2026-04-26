@@ -23,7 +23,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }));
-  
+
 app.use((req, res, next) => {
   res.locals.userName = req.session.userName || null;
   next();
@@ -69,65 +69,125 @@ app.get('/profile', isAuthenticated, async (req, res) => {
 
 app.get('/updateProfile', isAuthenticated, async (req, res) => {
   let userId = req.session.userId;
+
   let sql = `SELECT * FROM Users WHERE userId = ?`;
-  const [userInfo] = await pool.query(sql, [userId]);
-  res.render('updateProfile.ejs', { userInfo, error: null });
+  const [userRows] = await pool.query(sql, [userId]);
+
+  let watchlistSql = `SELECT * FROM watchlist WHERE userId = ?`;
+  const [watchlistInfo] = await pool.query(watchlistSql, [userId]);
+
+  let userInfo = userRows[0];
+
+  res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: null });
 });
 
 app.post('/updateProfile', isAuthenticated, async (req, res) => {
   let { userName, password } = req.body;
   let userId = req.session.userId;
+  let action = req.body.action;
 
   let sqlUser = `SELECT * FROM Users WHERE userId = ?`;
+  let sqlWatchlist = `SELECT * FROM watchlist WHERE userId = ?`;
 
-  // check if userName or password is empty
-  if (!userName?.trim() || !password?.trim()) {
-    const [userInfo] = await pool.query(sqlUser, [userId]);
-    return res.render('updateProfile.ejs', { userInfo, error: 'All fields are required.' });
-  }
-
-  try{
-    const [existingUsers] = await pool.query(
-      // check if userName already exists and is not the same user
-      'SELECT userId FROM Users WHERE userName = ? AND userId <> ?',
-      [userName, userId]
-    );
-    if (existingUsers.length > 0) {
-      const [userInfo] = await pool.query(sqlUser, [userId]);
-      return res.render('updateProfile.ejs', { userInfo, error: 'Username already exists.' });
+  if (action === 'updateUser') {
+    // check if userName or password is empty
+    if (!userName?.trim() || !password?.trim()) {
+      const [userRows] = await pool.query(sqlUser, [userId]);
+      const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+      let userInfo = userRows[0];
+      return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'All fields are required.' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await pool.query(
-      'UPDATE Users SET userName = ?, password = ? WHERE userId = ?',
-      [userName, hashedPassword, userId]
-    );
-    res.redirect('/profile');
-  } catch (err) {
-    console.error('Update profile error:', err);
-    const [userInfo] = await pool.query(sqlUser, [userId]);
-    res.render('updateProfile.ejs', { userInfo, error: 'Error updating profile.' });
+    try {
+      const [existingUsers] = await pool.query(
+        // check if userName already exists and is not the same user
+        'SELECT userId FROM Users WHERE userName = ? AND userId <> ?',
+        [userName, userId]
+      );
+      if (existingUsers.length > 0) {
+        const [userRows] = await pool.query(sqlUser, [userId]);
+        let userInfo = userRows[0];
+        const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+        return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Username already exists.' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.query(
+        'UPDATE Users SET userName = ?, password = ? WHERE userId = ?',
+        [userName, hashedPassword, userId]
+      );
+      res.redirect('/updateProfile');
+    } catch (err) {
+      console.error('Update profile error:', err);
+      const [userRows] = await pool.query(sqlUser, [userId]);
+      let userInfo = userRows[0];
+      const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+      res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error updating profile.' });
+    }
+  } else if (action === 'updateWatchlist') {
+    let { watchlistId, watchlistName } = req.body;
+    if (!watchlistName?.trim()) {
+      const [userRows] = await pool.query(sqlUser, [userId]);
+      let userInfo = userRows[0];
+      const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+      return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Watchlist name is required.' });
+    }
+    try {
+      await pool.query(
+        'UPDATE watchlist SET watchlistName = ? WHERE watchlistId = ? AND userId = ?',
+        [watchlistName, watchlistId, userId]
+      );
+      res.redirect('/updateProfile');
+    } catch (err) {
+      console.error('Update watchlist error:', err);
+      const [userRows] = await pool.query(sqlUser, [userId]);
+      let userInfo = userRows[0];
+      const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+      return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error updating watchlist.' });
+    }
+  } else if (action === 'deleteWatchlist') {
+    let { watchlistId } = req.body;
+    try {
+      await pool.query('DELETE FROM watchlist WHERE watchlistId = ? AND userId = ?', [watchlistId, userId]);
+      res.redirect('/updateProfile');
+    } catch (err) {
+      console.error('Delete watchlist error:', err);
+      const [userRows] = await pool.query(sqlUser, [userId]);
+      let userInfo = userRows[0];
+      const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+      return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error deleting watchlist.' });
+    }
+  } else {
+    return res.redirect('/updateProfile');
   }
 });
 
 app.get('/deleteProfile', isAuthenticated, async (req, res) => {
   let userId = req.session.userId;
   let sql = `SELECT * FROM Users WHERE userId = ?`;
-  const [userInfo] = await pool.query(sql, [userId]);
+  const [userRows] = await pool.query(sql, [userId]);
+  let userInfo = userRows[0];
   res.render('deleteProfile.ejs', { userInfo });
 });
 
 app.post('/deleteProfile', isAuthenticated, async (req, res) => {
   const userId = req.session.userId;
-  await pool.query('DELETE FROM Users WHERE userId = ?', [userId]);
 
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Session destroy error:', err);
-      return res.redirect('/profile'); // or show an error page
-    }
-    res.redirect('/login');
-  });
+  try {
+    await pool.query('DELETE FROM watchlist WHERE userId = ?', [userId]);
+    await pool.query('DELETE FROM Users WHERE userId = ?', [userId]);
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.redirect('/profile');
+      }
+      res.redirect('/login');
+    });
+  } catch (err) {
+    console.error('Delete profile error:', err);
+    res.redirect('/updateProfile');
+  }
 });
 
 app.post('/signup', async (req, res) => {
@@ -212,7 +272,6 @@ app.get('/search', async (req, res) => {
       query: ''
     });
   }
-  
 
   try {
     const url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
@@ -254,6 +313,8 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
 
   try {
     await pool.query(
+
+      //(userId, movieId, title, poster_path, release_date, watchStatus, rating, overview)
       `INSERT INTO watchlist
       (user_id, movie_id, title, poster_path, release_date, status, user_rating, overview)
       VALUES (?, ?, ?, ?, ?, 'Want to Watch', NULL, ?)
