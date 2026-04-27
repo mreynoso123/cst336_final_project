@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 
-
 dotenv.config();
 
 const app = express();
@@ -114,6 +113,7 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
   let sqlUser = `SELECT * FROM Users WHERE userId = ?`;
   let sqlWatchlist = `SELECT * FROM watchlist WHERE userId = ?`;
 
+  // update user
   if (action === 'updateUser') {
     // check if userName or password is empty
     if (!userName?.trim() || !password?.trim()) {
@@ -149,7 +149,9 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
       const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
       res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error updating profile.' });
     }
-  } else if (action === 'updateWatchlist') {
+  } 
+  // update watchlist
+  else if (action === 'updateWatchlist') {
     let { watchlistId, watchlistName } = req.body;
     if (!watchlistName?.trim()) {
       const [userRows] = await pool.query(sqlUser, [userId]);
@@ -182,7 +184,9 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
       const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
       return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error updating watchlist.' });
     }
-  } else if (action === 'createWatchlist') {
+  } 
+  // create watchlist
+  else if (action === 'createWatchlist') {
     let { watchlistName } = req.body;
     if (!watchlistName?.trim()) {
       const [userRows] = await pool.query(sqlUser, [userId]);
@@ -215,7 +219,9 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
       const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
       return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error creating watchlist.' });
     }
-  } else if (action === 'deleteWatchlist') {
+  } 
+  // delete watchlist
+  else if (action === 'deleteWatchlist') {
     let { watchlistId } = req.body;
     try {
       await pool.query('DELETE FROM watchlist WHERE watchlistId = ? AND userId = ?', [watchlistId, userId]);
