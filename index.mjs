@@ -158,9 +158,21 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
       return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Watchlist name is required.' });
     }
     try {
+      const trimmedWatchlistName = watchlistName.trim();
+      const [existingWatchlists] = await pool.query(
+        'SELECT watchlistId FROM watchlist WHERE userId = ? AND watchlistName = ? AND watchlistId <> ?',
+        [userId, trimmedWatchlistName, watchlistId]
+      );
+      if (existingWatchlists.length > 0) {
+        const [userRows] = await pool.query(sqlUser, [userId]);
+        let userInfo = userRows[0];
+        const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+        return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'You already have a watchlist with that name.' });
+      }
+
       await pool.query(
         'UPDATE watchlist SET watchlistName = ? WHERE watchlistId = ? AND userId = ?',
-        [watchlistName, watchlistId, userId]
+        [trimmedWatchlistName, watchlistId, userId]
       );
       res.redirect('/updateProfile');
     } catch (err) {
@@ -169,6 +181,39 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
       let userInfo = userRows[0];
       const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
       return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error updating watchlist.' });
+    }
+  } else if (action === 'createWatchlist') {
+    let { watchlistName } = req.body;
+    if (!watchlistName?.trim()) {
+      const [userRows] = await pool.query(sqlUser, [userId]);
+      let userInfo = userRows[0];
+      const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+      return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Watchlist name is required.' });
+    }
+    try {
+      const trimmedWatchlistName = watchlistName.trim();
+      const [existingWatchlists] = await pool.query(
+        'SELECT watchlistId FROM watchlist WHERE userId = ? AND watchlistName = ?',
+        [userId, trimmedWatchlistName]
+      );
+      if (existingWatchlists.length > 0) {
+        const [userRows] = await pool.query(sqlUser, [userId]);
+        let userInfo = userRows[0];
+        const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+        return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'You already have a watchlist with that name.' });
+      }
+
+      await pool.query(
+        'INSERT INTO watchlist (watchlistName, userId) VALUES (?, ?)',
+        [trimmedWatchlistName, userId]
+      );
+      res.redirect('/updateProfile');
+    } catch (err) {
+      console.error('Create watchlist error:', err);
+      const [userRows] = await pool.query(sqlUser, [userId]);
+      let userInfo = userRows[0];
+      const [watchlistInfo] = await pool.query(sqlWatchlist, [userId]);
+      return res.render('updateProfile.ejs', { userInfo, watchlistInfo, error: 'Error creating watchlist.' });
     }
   } else if (action === 'deleteWatchlist') {
     let { watchlistId } = req.body;
