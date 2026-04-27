@@ -45,6 +45,21 @@
         <div class="watchlist-section">
             <h2>Your Watchlists</h2>
 
+            <form action="/updateProfile" method="POST" class="stack-form">
+                <input type="hidden" name="action" value="createWatchlist">
+
+                <label for="newWatchlistName">Create New Watchlist:</label>
+                <input
+                    id="newWatchlistName"
+                    type="text"
+                    name="watchlistName"
+                    placeholder="Enter watchlist name"
+                    required
+                >
+
+                <button type="submit">Create Watchlist</button>
+            </form>
+
             <% if (watchlistInfo.length === 0) { %>
                 <p class="muted">No watchlists found.</p>
             <% } %>
