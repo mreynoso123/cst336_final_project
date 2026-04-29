@@ -502,6 +502,7 @@ app.get('/movie/:id', async (req, res) => {
   res.render('movieDetails.ejs', {details: detailsData, cast: creditsData.cast, trailer: trailer});
 });
 
+
 app.get('/dbTest', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT CURDATE() AS today');
@@ -510,6 +511,17 @@ app.get('/dbTest', async (req, res) => {
     console.error('Database error:', err);
     res.status(500).send('Database error!');
   }
+});
+
+app.get('/searchBy', async(req, res) => {
+    let authorId = req.query.authorId;
+    let sql = `SELECT quote, firstName, lastName, authorId
+    FROM quotes 
+    NATURAL JOIN authors 
+    WHERE authorId = ?;`;
+    let sqlParams =[ authorId ];
+    const [rows] = await pool.query(sql, [authorId]);
+    res.render('quotes.ejs', {rows})
 });
 
 app.listen(PORT, () => {
