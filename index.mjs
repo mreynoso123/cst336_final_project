@@ -480,6 +480,28 @@ app.post('/watchlist/delete', isAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/movie/:id', async (req, res) => {
+  let movieId = req.params.id;
+
+  let details = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${process.env.TMDB_API_KEY}`); 
+  let credits = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${process.env.TMDB_API_KEY}`);
+  let videos = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${process.env.TMDB_API_KEY}`);
+
+  let detailsData = await details.json();
+  let creditsData = await credits.json();
+  let videosData = await videos.json();
+
+  let trailer = null; //in case no trailer is found
+  for (let video of videosData.results) {
+    if (video.type === 'Trailer' && video.site === 'YouTube') {
+      trailer = video;
+      break;
+    }
+  }
+
+  res.render('movieDetails.ejs', {details: detailsData, cast: creditsData.cast, trailer: trailer});
+});
+
 app.get('/dbTest', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT CURDATE() AS today');
