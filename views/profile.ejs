@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Summary</title>
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/navbar.ejs') %>
+
+    <div class="container">
+        <h1>Profile Summary</h1>
+
+        <div class="card">
+            <h2>Account</h2>
+            <p><strong>Username:</strong> <%= userInfo.userName %></p>
+            <p><strong>Total Watchlists:</strong> <%= totalWatchlists %></p>
+            <p><strong>Marked Watched:</strong> <%= watchedCount %></p>
+            <p><strong>Rated Items:</strong> <%= ratedCount %></p>
+
+            <div class="profile-actions">
+                <a href="/updateProfile" class="btn">Edit Profile</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Your Watchlists</h2>
+
+            <% if (watchlistInfo.length === 0) { %>
+                <p class="muted">No watchlists found.</p>
+            <% } %>
+
+            <% for (let watchlist of watchlistInfo) { %>
+                <div class="watchlist-summary-card">
+                    <div class="watchlist-summary-row">
+                        <div class="watchlist-summary-item">
+                            <span class="summary-label">Name</span>
+                            <span><%= watchlist.watchlistName %></span>
+                        </div>
+
+                        <div class="watchlist-summary-item">
+                            <span class="summary-label">Status</span>
+                            <span><%= watchlist.watchStatus || 'Not set' %></span>
+                        </div>
+
+                        <div class="watchlist-summary-item">
+                            <span class="summary-label">Rating</span>
+                            <span><%= watchlist.rating ?? 'Not rated' %></span>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <%- include('partials/footer.ejs') %>
+</body>
+</html>

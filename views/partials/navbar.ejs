@@ -3,7 +3,16 @@
     <a href="/" class="brand">CineTrack</a>
     <div class="nav-links">
       <a href="/">Home</a>
+      <a href="/search?query=">Search</a>
       <a href="/watchlist">My Watchlist</a>
+      <% if (userName) { %>
+        <a href="/profile">Profile</a>
+        <a href="/logout">Logout</a>
+        <span class="nav-user">Hi, <%= userName %></span>
+      <% } else { %>
+        <a href="/login">Login</a>
+        <a href="/signup">Sign Up</a>
+      <% } %>
     </div>
   </div>
 </nav>

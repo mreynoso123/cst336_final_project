@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Profile</title>
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/navbar.ejs') %>
+    <h1>Delete Profile</h1>
+    <p> Are you sure you want to delete your account? This cannot be undone</p>
+    <form action="/deleteProfile" method="POST">
+        <button type="submit">Delete Profile</button>
+    </form>
+    <%- include('partials/footer.ejs') %>
+</body>
+</html>

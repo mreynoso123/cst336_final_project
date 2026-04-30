@@ -6,19 +6,27 @@
     <title>CineTrack</title>
     <link href="/css/styles.css" rel="stylesheet">
 </head>
+
 <body>
     <%- include('partials/navbar.ejs') %>
 
     <main class="container">
-        <h1>CineTrack</h1>
-        <p>Search for a movie and add it to your watchlist.</p>
+        <section class="hero">
+            <h1>CineTrack</h1>
+            <p class="subtitle">Discover films, keep track of what to watch next, and build a watchlist you will actually use.</p>
 
-        <form action="/search" method="GET" class="search-form">
-            <input type="text" name="query" placeholder="Search for a movie" required>
-            <button type="submit">Search</button>
-        </form>
+            <form action="/search" method="GET" class="search-form">
+                <input type="text" name="query" placeholder="Search for a movie" required>
+                <button type="submit">Search</button>
+            </form>
 
-        <p><a href="/watchlist">View My Watchlist</a></p>
+            <a href="/watchlist" class="pill-link">View My Watchlist</a>
+        </section>
+
+        <section class="card">
+            <h2>How It Works</h2>
+            <p class="muted">Search a title, add it in one click, then update status and rating from your watchlist.</p>
+        </section>
     </main>
 
     <%- include('partials/footer.ejs') %>

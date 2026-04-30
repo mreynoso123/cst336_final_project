@@ -10,8 +10,17 @@
     <%- include('partials/navbar.ejs') %>
 
     <main class="container">
-        <h1>Search Results</h1>
-        <p><a href="/">Back to Home</a></p>
+        <section class="hero">
+            <h1>Search Results</h1>
+            <p class="subtitle">Find a title and add it to your watchlist in one click.</p>
+
+            <form action="/search" method="GET" class="search-form">
+                <input type="text" name="query" placeholder="Try: Interstellar, Dune, Parasite" required>
+                <button type="submit">Search</button>
+            </form>
+
+            <a href="/" class="pill-link">Back to Home</a>
+        </section>
 
         <% if (query) { %>
             <p>Results for: <strong><%= query %></strong></p>
@@ -23,35 +32,45 @@
 
         <% if (movies && movies.length > 0) { %>
             <% movies.forEach(movie => { %>
-                <div class="movie-card">
-                    <h2><%= movie.title %></h2>
-
+                <article class="movie-card">
                     <% if (movie.poster_path) { %>
                         <img
                           src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>"
                           alt="<%= movie.title %> poster"
+                          class="movie-poster"
                         >
+                    <% } else { %>
+                        <div class="poster-placeholder">No Poster</div>
                     <% } %>
 
-                    <p><strong>TMDB ID:</strong> <%= movie.id %></p>
-                    <p><strong>Release Date:</strong> <%= movie.release_date || 'N/A' %></p>
-                    <p><strong>Genres:</strong> <%= movie.genre_names || 'N/A' %></p>
-                    <p><strong>Rating:</strong> <%= movie.vote_average ?? 'N/A' %></p>
-                    <p><%= movie.overview || 'No overview available.' %></p>
+                    <div>
+                        <h2><%= movie.title %></h2>
 
-                    <form action="/watchlist/add" method="POST">
-                        <input type="hidden" name="movie_id" value="<%= movie.id %>">
-                        <input type="hidden" name="title" value="<%= movie.title %>">
-                        <input type="hidden" name="poster_path" value="<%= movie.poster_path || '' %>">
-                        <input type="hidden" name="release_date" value="<%= movie.release_date || '' %>">
-                        <input type="hidden" name="overview" value="<%= movie.overview || '' %>">
-                        <input type="hidden" name="genre" value="<%= movie.genre_names || '' %>">
-                        <button type="submit">Add to Watchlist</button>
-                    </form>
-                </div>
+                        <div class="movie-meta">
+                            <span>TMDB: <%= movie.id %></span>
+                            <span>Release: <%= movie.release_date || 'N/A' %></span>
+                            <span>Genres: <%= movie.genre_names || 'N/A' %></span>
+                            <span>Rating: <%= movie.vote_average ?? 'N/A' %></span>
+                        </div>
+
+                        <p class="overview"><%= movie.overview || 'No overview available.' %></p>
+
+                        <form action="/watchlist/add" method="POST" class="inline-form">
+                            <input type="hidden" name="movie_id" value="<%= movie.id %>">
+                            <input type="hidden" name="title" value="<%= movie.title %>">
+                            <input type="hidden" name="poster_path" value="<%= movie.poster_path || '' %>">
+                            <input type="hidden" name="release_date" value="<%= movie.release_date || '' %>">
+                            <input type="hidden" name="overview" value="<%= movie.overview || '' %>">
+                            <input type="hidden" name="genre" value="<%= movie.genre_names || '' %>">
+                            <button type="submit">Add to Watchlist</button>
+                        </form>
+                    </div>
+                </article>
             <% }) %>
         <% } else if (!error) { %>
-            <p>No results found.</p>
+            <section class="card">
+                <p>No results found.</p>
+            </section>
         <% } %>
     </main>
 

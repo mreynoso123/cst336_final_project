@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+  <%- include('partials/navbar.ejs') %>
+
+  <main class="container auth-wrap">
+    <section class="auth-card">
+      <h1>Create Account</h1>
+      <p class="muted">Set up your CineTrack account and start building your watchlist.</p>
+
+      <% if (error) { %>
+        <p class="error-message"><%= error %></p>
+      <% } %>
+
+      <form method="POST" action="/signup" class="stack-form">
+        <div class="field-group">
+          <label for="userName">Username</label>
+          <input type="text" id="userName" name="userName" required>
+        </div>
+
+        <div class="field-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+
+        <button type="submit">Create Account</button>
+      </form>
+
+      <p>Already have an account? <a href="/login">Login</a></p>
+    </section>
+  </main>
+
+  <%- include('partials/footer.ejs') %>
+</body>
+</html>

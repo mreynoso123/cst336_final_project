@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/navbar.ejs') %>
+
+    <div class="container">
+        <h1>Update Profile</h1>
+
+        <% if (error) { %>
+            <p class="error-message"><%= error %></p>
+        <% } %>
+
+        <form action="/updateProfile" method="POST" class="stack-form">
+            <input type="hidden" name="action" value="updateUser">
+
+            <label for="userName">Username:</label>
+            <input
+                id="userName"
+                type="text"
+                name="userName"
+                placeholder="Enter new user name"
+                value="<%= userInfo.userName %>"
+                required
+            >
+
+            <label for="password">Password:</label>
+            <input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="Enter new password"
+                value=""
+                required
+            >
+
+            <button type="submit">Update Profile</button>
+        </form>
+
+        <div class="watchlist-section">
+            <h2>Your Watchlists</h2>
+
+            <form action="/updateProfile" method="POST" class="stack-form">
+                <input type="hidden" name="action" value="createWatchlist">
+
+                <label for="newWatchlistName">Create New Watchlist:</label>
+                <input
+                    id="newWatchlistName"
+                    type="text"
+                    name="watchlistName"
+                    placeholder="Enter watchlist name"
+                    required
+                >
+
+                <button type="submit">Create Watchlist</button>
+            </form>
+
+            <% if (watchlistInfo.length === 0) { %>
+                <p class="muted">No watchlists found.</p>
+            <% } %>
+
+            <% for (let watchlist of watchlistInfo) { %>
+                <div class="watchlist-row">
+                    <form action="/updateProfile" method="POST" class="watchlist-form">
+                        <input type="hidden" name="action" value="updateWatchlist">
+                        <input type="hidden" name="watchlistId" value="<%= watchlist.watchlistId %>">
+
+                        <input
+                            type="text"
+                            name="watchlistName"
+                            value="<%= watchlist.watchlistName %>"
+                            required
+                        >
+
+                        <button type="submit">Update Watchlist Name</button>
+                    </form>
+
+                    <form action="/updateProfile" method="POST" class="watchlist-form">
+                        <input type="hidden" name="action" value="deleteWatchlist">
+                        <input type="hidden" name="watchlistId" value="<%= watchlist.watchlistId %>">
+
+                        <button type="submit" class="danger-btn">Delete Watchlist</button>
+                    </form>
+                </div>
+            <% } %>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <a href="/deleteProfile" class="btn danger-btn">Delete Account</a>
+        </div>
+    </div>
+
+    <%- include('partials/footer.ejs') %>
+</body>
+</html>
