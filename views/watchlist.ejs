@@ -59,10 +59,12 @@
     <% } %>
 
     <% movies.forEach(movie => { %>
-      <article class="movie-card">
-        <% if (movie.poster_path) { %>
+      <div class="movie-card">
+        <h2><%= movie.title %></h2>
+
+        <% if (movie.posterPath) { %>
           <img
-            src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>"
+            src="https://image.tmdb.org/t/p/w200<%= movie.posterPath %>"
             alt="<%= movie.title %> poster"
             class="movie-poster"
           >
@@ -70,46 +72,39 @@
           <div class="poster-placeholder">No Poster</div>
         <% } %>
 
-        <div>
-          <h2><%= movie.title %></h2>
+        <p><strong>Release Date:</strong> <%= movie.releaseDate || 'N/A' %></p>
+        <p><strong>Genres:</strong> <%= movie.genre || 'N/A' %></p>
+        <p><strong>Status:</strong> <%= movie.watchStatus %></p>
+        <p><strong>Your Rating:</strong> <%= movie.rating ?? 'Not rated' %></p>
+        <p><%= movie.overview || 'No overview available.' %></p>
 
-          <div class="movie-meta">
-            <span>Release: <%= movie.release_date || 'N/A' %></span>
-            <span>Genres: <%= movie.genre || 'N/A' %></span>
-            <span>Status: <%= movie.status %></span>
-            <span>Your Rating: <%= movie.user_rating ?? 'Not rated' %></span>
-          </div>
+        <form action="/watchlist/update" method="POST" class="inline-form">
+          <input type="hidden" name="id" value="<%= movie.watchlistId %>">
 
-          <p class="overview"><%= movie.overview || 'No overview available.' %></p>
+          <label for="status-<%= movie.watchlistId %>">Status:</label>
+          <select name="status" id="status-<%= movie.watchlistId %>">
+            <option value="Want to Watch" <%= movie.watchStatus === 'Want to Watch' ? 'selected' : '' %>>Want to Watch</option>
+            <option value="Watched" <%= movie.watchStatus === 'Watched' ? 'selected' : '' %>>Watched</option>
+          </select>
 
-          <form action="/watchlist/update" method="POST" class="inline-form">
-            <input type="hidden" name="id" value="<%= movie.id %>">
-
-            <label for="status-<%= movie.id %>">Status:</label>
-            <select name="status" id="status-<%= movie.id %>">
-              <option value="Want to Watch" <%= movie.status === 'Want to Watch' ? 'selected' : '' %>>Want to Watch</option>
-              <option value="Watched" <%= movie.status === 'Watched' ? 'selected' : '' %>>Watched</option>
-            </select>
-
-            <label for="rating-<%= movie.id %>">Rating:</label>
-            <select name="user_rating" id="rating-<%= movie.id %>">
-              <option value="">No Rating</option>
-              <option value="1" <%= movie.user_rating == 1 ? 'selected' : '' %>>1</option>
-              <option value="2" <%= movie.user_rating == 2 ? 'selected' : '' %>>2</option>
-              <option value="3" <%= movie.user_rating == 3 ? 'selected' : '' %>>3</option>
-              <option value="4" <%= movie.user_rating == 4 ? 'selected' : '' %>>4</option>
-              <option value="5" <%= movie.user_rating == 5 ? 'selected' : '' %>>5</option>
-            </select>
+          <label for="rating-<%= movie.watchlistId %>">Rating:</label>
+          <select name="user_rating" id="rating-<%= movie.watchlistId %>">
+            <option value="">No Rating</option>
+            <option value="1" <%= movie.rating == 1 ? 'selected' : '' %>>1</option>
+            <option value="2" <%= movie.rating == 2 ? 'selected' : '' %>>2</option>
+            <option value="3" <%= movie.rating == 3 ? 'selected' : '' %>>3</option>
+            <option value="4" <%= movie.rating == 4 ? 'selected' : '' %>>4</option>
+            <option value="5" <%= movie.rating == 5 ? 'selected' : '' %>>5</option>
+          </select>
 
             <button type="submit">Update</button>
           </form>
 
-          <form action="/watchlist/delete" method="POST" class="inline-form">
-            <input type="hidden" name="id" value="<%= movie.id %>">
-            <button type="submit" class="danger-btn">Remove</button>
-          </form>
-        </div>
-      </article>
+        <form action="/watchlist/delete" method="POST" class="inline-form">
+          <input type="hidden" name="id" value="<%= movie.watchlistId %>">
+          <button type="submit" class="danger-btn">Remove</button>
+        </form>
+      </div>
     <% }) %>
   </main>
 

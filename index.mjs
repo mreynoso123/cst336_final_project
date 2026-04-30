@@ -37,13 +37,39 @@ const pool = mysql.createPool({
   waitForConnections: true
 });
 
-// middleware to check if user is authenticated - Joseph
-function isAuthenticated(req, res, next) {
-  if (req.session.userId) return next();
-  res.redirect('/login');
+const TMDB_GENRES = {
+  28: 'Action',
+  12: 'Adventure',
+  16: 'Animation',
+  35: 'Comedy',
+  80: 'Crime',
+  99: 'Documentary',
+  18: 'Drama',
+  10751: 'Family',
+  14: 'Fantasy',
+  36: 'History',
+  27: 'Horror',
+  10402: 'Music',
+  9648: 'Mystery',
+  10749: 'Romance',
+  878: 'Science Fiction',
+  10770: 'TV Movie',
+  53: 'Thriller',
+  10752: 'War',
+  37: 'Western'
+};
+
+function mapGenreIdsToNames(genreIds = []) {
+  if (!Array.isArray(genreIds) || genreIds.length === 0) {
+    return '';
+  }
+
+  return genreIds
+    .map(id => TMDB_GENRES[id])
+    .filter(Boolean)
+    .join(', ');
 }
 
-// routes
 app.get('/', (req, res) => {
   res.render('home.ejs');
 });
@@ -355,7 +381,6 @@ app.get('/search', async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('TMDB API error:', data);
       return res.render('search.ejs', {
         movies: [],
         error: data.status_message || 'Unable to fetch movie results right now.',
@@ -363,8 +388,13 @@ app.get('/search', async (req, res) => {
       });
     }
 
+    const moviesWithGenres = (data.results || []).map(movie => ({
+      ...movie,
+      genre_names: mapGenreIdsToNames(movie.genre_ids)
+    }));
+
     res.render('search.ejs', {
-      movies: data.results || [],
+      movies: moviesWithGenres,
       error: null,
       query
     });
@@ -384,62 +414,105 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
     title,
     poster_path,
     release_date,
-    overview
+    overview,
+    genre
   } = req.body;
 
   try {
     await pool.query(
+      `INSERT INTO movies (movieId, title)
+       VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE title = VALUES(title)`,
+      [movie_id, title]
+    );
 
-      //(userId, movieId, title, poster_path, release_date, watchStatus, rating, overview)
+    await pool.query(
       `INSERT INTO watchlist
-      (user_id, movie_id, title, poster_path, release_date, status, user_rating, overview)
-      VALUES (?, ?, ?, ?, ?, 'Want to Watch', NULL, ?)
+      (userId, movieId, watchStatus, rating, genre, posterPath, releaseDate, overview)
+      VALUES (?, ?, 'Want to Watch', NULL, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        title = VALUES(title),
-        poster_path = VALUES(poster_path),
-        release_date = VALUES(release_date),
+        genre = VALUES(genre),
+        posterPath = VALUES(posterPath),
+        releaseDate = VALUES(releaseDate),
         overview = VALUES(overview)`,
-      [req.session.userId, movie_id, title, poster_path, release_date, overview]
+      [DEMO_USER_ID, movie_id, genre, poster_path, release_date, overview]
     );
 
     res.redirect('/watchlist');
   } catch (err) {
     console.error('Add to watchlist error:', err);
-    res.status(500).send('Could not add movie to watchlist.');
+    res.status(500).send(`Could not add movie to watchlist: ${err.message}`);
   }
 });
 
-app.get('/watchlist', isAuthenticated, async (req, res) => {
-  const { status, minRating } = req.query;
+app.get('/watchlist', async (req, res) => {
+  const { status, genre, minRating } = req.query;
 
-  let sql = `SELECT * FROM watchlist WHERE user_id = ?`;
-  const params = [req.session.userId];
+  let sql = `
+    SELECT 
+      w.watchlistId,
+      w.userId,
+      w.movieId,
+      m.title,
+      w.watchStatus,
+      w.rating,
+      w.genre,
+      w.posterPath,
+      w.releaseDate,
+      w.overview,
+      w.createdAt
+    FROM watchlist w
+    JOIN movies m ON w.movieId = m.movieId
+    WHERE w.userId = ?
+  `;
+  const params = [DEMO_USER_ID];
 
   if (status) {
-    sql += ` AND status = ?`;
+    sql += ` AND w.watchStatus = ?`;
     params.push(status);
   }
 
+  if (genre) {
+    sql += ` AND w.genre LIKE ?`;
+    params.push(`%${genre}%`);
+  }
+
   if (minRating) {
-    sql += ` AND user_rating >= ?`;
+    sql += ` AND w.rating >= ?`;
     params.push(Number(minRating));
   }
 
-  sql += ` ORDER BY created_at DESC`;
+  sql += ` ORDER BY w.createdAt DESC`;
 
   try {
     const [movies] = await pool.query(sql, params);
 
+    const [genres] = await pool.query(
+      `SELECT DISTINCT genre
+       FROM watchlist
+       WHERE userId = ? AND genre IS NOT NULL AND genre != ''`,
+      [DEMO_USER_ID]
+    );
+
+    const genreOptions = genres
+      .flatMap(row => row.genre.split(','))
+      .map(g => g.trim())
+      .filter(Boolean);
+
+    const uniqueGenreOptions = [...new Set(genreOptions)].sort();
+
     res.render('watchlist.ejs', {
       movies,
+      genreOptions: uniqueGenreOptions,
       filters: {
         status: status || '',
+        genre: genre || '',
         minRating: minRating || ''
       }
     });
   } catch (err) {
     console.error('Watchlist fetch error:', err);
-    res.status(500).send('Could not load watchlist.');
+    res.status(500).send(`Could not load watchlist: ${err.message}`);
   }
 });
 
@@ -452,15 +525,15 @@ app.post('/watchlist/update', isAuthenticated, async (req, res) => {
 
     await pool.query(
       `UPDATE watchlist
-       SET status = ?, user_rating = ?
-       WHERE id = ? AND user_id = ?`,
-      [status, parsedRating, id, req.session.userId]
+       SET watchStatus = ?, rating = ?
+       WHERE watchlistId = ? AND userId = ?`,
+      [status, parsedRating, id, DEMO_USER_ID]
     );
 
     res.redirect('/watchlist');
   } catch (err) {
     console.error('Watchlist update error:', err);
-    res.status(500).send('Could not update watchlist item.');
+    res.status(500).send(`Could not update watchlist item: ${err.message}`);
   }
 });
 
@@ -469,14 +542,15 @@ app.post('/watchlist/delete', isAuthenticated, async (req, res) => {
 
   try {
     await pool.query(
-      `DELETE FROM watchlist WHERE id = ? AND user_id = ?`,
-      [id, req.session.userId]
+      `DELETE FROM watchlist
+       WHERE watchlistId = ? AND userId = ?`,
+      [id, DEMO_USER_ID]
     );
 
     res.redirect('/watchlist');
   } catch (err) {
     console.error('Delete watchlist error:', err);
-    res.status(500).send('Could not remove movie.');
+    res.status(500).send(`Could not remove movie: ${err.message}`);
   }
 });
 
@@ -486,7 +560,7 @@ app.get('/dbTest', async (req, res) => {
     res.send(rows);
   } catch (err) {
     console.error('Database error:', err);
-    res.status(500).send('Database error!');
+    res.status(500).send(`Database error: ${err.message}`);
   }
 });
 
