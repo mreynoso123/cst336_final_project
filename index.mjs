@@ -485,19 +485,21 @@ app.get('/movie/:id', async (req, res) => {
 
   let details = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${process.env.TMDB_API_KEY}`); 
   let credits = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${process.env.TMDB_API_KEY}`);
-  let videos = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${process.env.TMDB_API_KEY}`);
+  //let videos = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${process.env.TMDB_API_KEY}`);
 
   let detailsData = await details.json();
   let creditsData = await credits.json();
-  let videosData = await videos.json();
+  //let videosData = await videos.json();
 
-  let trailer = null; //in case no trailer is found
-  for (let video of videosData.results) {
-    if (video.type === 'Trailer' && video.site === 'YouTube') {
-      trailer = video;
-      break;
-    }
-  }
+  //youtube api
+  let query = encodeURIComponent(`${detailsData.title} official trailer`); //builds youtube search phrase
+  let ytUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${query}&key=${process.env.YOUTUBE_API_KEY}`;
+
+  let ytResponse = await fetch(ytUrl);
+  let ytData = await ytResponse.json();
+
+  //extracts video ID
+  let trailer = ytData.items?.[0]?.id?.videoId || null; //checks items -> first item -> id -> videoId step by step, returns null if nothing is found
 
   res.render('movieDetails.ejs', {details: detailsData, cast: creditsData.cast, trailer: trailer});
 });
