@@ -35,9 +35,9 @@
                 <article class="movie-card">
                     <% if (movie.poster_path) { %>
                         <img
-                          src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>"
-                          alt="<%= movie.title %> poster"
-                          class="movie-poster"
+                            src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>"
+                            alt="<%= movie.title %> poster"
+                            class="movie-poster"
                         >
                     <% } else { %>
                         <div class="poster-placeholder">No Poster</div>
@@ -55,15 +55,21 @@
 
                         <p class="overview"><%= movie.overview || 'No overview available.' %></p>
 
-                        <form action="/watchlist/add" method="POST" class="inline-form">
-                            <input type="hidden" name="movie_id" value="<%= movie.id %>">
-                            <input type="hidden" name="title" value="<%= movie.title %>">
-                            <input type="hidden" name="poster_path" value="<%= movie.poster_path || '' %>">
-                            <input type="hidden" name="release_date" value="<%= movie.release_date || '' %>">
-                            <input type="hidden" name="overview" value="<%= movie.overview || '' %>">
-                            <input type="hidden" name="genre" value="<%= movie.genre_names || '' %>">
-                            <button type="submit">Add to Watchlist</button>
-                        </form>
+                        <div class="row-btn">
+                            <form action="/movie/<%= movie.id %>" method="GET">
+                                <button type="submit">View Details</button>
+                            </form>
+
+                            <form action="/watchlist/add" method="POST" class="inline-form">
+                                <input type="hidden" name="movie_id" value="<%= movie.id %>">
+                                <input type="hidden" name="title" value="<%= movie.title %>">
+                                <input type="hidden" name="poster_path" value="<%= movie.poster_path || '' %>">
+                                <input type="hidden" name="release_date" value="<%= movie.release_date || '' %>">
+                                <input type="hidden" name="overview" value="<%= movie.overview || '' %>">
+                                <input type="hidden" name="genre" value="<%= movie.genre_names || '' %>">
+                                <button type="submit">Add to Watchlist</button>
+                            </form>
+                        </div>
                     </div>
                 </article>
             <% }) %>
