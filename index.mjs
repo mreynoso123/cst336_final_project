@@ -566,6 +566,34 @@ app.post('/watchlist/delete', isAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/movie/:id', async (req, res) => {
+  let movieId = req.params.id;
+
+  let details = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${process.env.TMDB_API_KEY}`); 
+  let credits = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${process.env.TMDB_API_KEY}`);
+  //let videos = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${process.env.TMDB_API_KEY}`);
+
+  let detailsData = await details.json();
+  let creditsData = await credits.json();
+  //let videosData = await videos.json();
+  let director = creditsData.crew.find(person => person.job === "Director");
+
+  //youtube api
+  let query = encodeURIComponent(`${detailsData.title} official trailer`); //builds youtube search phrase
+  let ytUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${query}&key=${process.env.YOUTUBE_API_KEY}`;
+
+  let ytResponse = await fetch(ytUrl);
+  let ytData = await ytResponse.json();
+
+  //extracts video ID
+  let trailer = ytData.items?.[0]?.id?.videoId || null; //checks items -> first item -> id -> videoId step by step, returns null if nothing is found
+  console.log(ytData);
+  console.log("Trailer ID:", trailer);
+
+  res.render('movieDetails.ejs', {details: detailsData, cast: creditsData.cast, trailer: trailer, director: director});
+});
+
+
 app.get('/dbTest', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT CURDATE() AS today');
@@ -574,6 +602,17 @@ app.get('/dbTest', async (req, res) => {
     console.error('Database error:', err);
     res.status(500).send(`Database error: ${err.message}`);
   }
+});
+
+app.get('/searchBy', async(req, res) => {
+    let authorId = req.query.authorId;
+    let sql = `SELECT quote, firstName, lastName, authorId
+    FROM quotes 
+    NATURAL JOIN authors 
+    WHERE authorId = ?;`;
+    let sqlParams =[ authorId ];
+    const [rows] = await pool.query(sql, [authorId]);
+    res.render('quotes.ejs', {rows})
 });
 
 app.listen(PORT, () => {
