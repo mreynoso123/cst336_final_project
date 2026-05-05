@@ -190,19 +190,26 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
 
   let sqlUser = `SELECT * FROM Users WHERE userId = ?`;
   let sqlWatchlist = `
-    SELECT 
-      w.watchlistId,
-      m.title,
-      w.watchStatus,
-      w.rating
-    FROM watchlist w
-    JOIN movies m ON w.movieId = m.movieId
-    WHERE w.userId = ?
-  `;
+  SELECT 
+    w.watchlistId,
+    w.userId,
+    w.movieId,
+    m.title,
+    w.watchStatus,
+    w.rating,
+    w.genre,
+    w.posterPath,
+    w.releaseDate,
+    w.overview,
+    w.createdAt
+  FROM watchlist w
+  JOIN movies m ON w.movieId = m.movieId
+  WHERE w.userId = ?
+  ORDER BY w.createdAt DESC
+`;
 
-  // =========================
-  // UPDATE USER INFO
-  // =========================
+  
+  // Update user information
   if (action === 'updateUser') {
     if (!userName?.trim() || !password?.trim()) {
       const [userRows] = await pool.query(sqlUser, [userId]);
@@ -254,9 +261,7 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
     }
   }
 
-  // =========================
-  // UPDATE MOVIE STATUS/RATING
-  // =========================
+  // Update movie status and rating
   else if (action === 'updateMovie') {
     let { watchlistId, watchStatus, rating } = req.body;
 
@@ -286,9 +291,7 @@ app.post('/updateProfile', isAuthenticated, async (req, res) => {
     }
   }
 
-  // =========================
-  // DELETE MOVIE FROM WATCHLIST
-  // =========================
+  // Delete movie from watchlist
   else if (action === 'deleteMovie') {
     let { watchlistId } = req.body;
 
