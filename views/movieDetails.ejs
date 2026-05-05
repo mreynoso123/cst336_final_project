@@ -6,94 +6,161 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Details</title>
     <link href="/css/styles.css" rel="stylesheet">
+    
 </head>
 
+
 <body>
+    <%
+  const languageNames = {
+    en: "English",
+    es: "Spanish",
+    fr: "French",
+    ja: "Japanese",
+    ko: "Korean",
+    zh: "Chinese",
+    de: "German",
+    it: "Italian",
+    ru: "Russian",
+    hi: "Hindi",
+    cn: "Chinese"
+  };
+%>
     <%- include('partials/navbar.ejs') %>
 
-        <main class="container">
+        <main>
+<div class="box1">
+            <br>
+            <div class="box">
+                <a href="javascript:history.back()" > Back to Results</a>
+                <h1>
+                    <%= details.title %>
+                </h1>
 
-            <!-- <form action="/search" method="GET" class="inline-form">
-            <button>Back to Results</button>
-        </form> -->
+                <div class="movie-top">
+                    <div class="poster">
+                        <% if (details.poster_path) { %>
+                            <img src="https://image.tmdb.org/t/p/w500<%= details.poster_path %>"
+                                alt="<%= details.title %> poster">
+                            <% } %>
+                    </div>
 
-            <h1>
-                <%= details.title %>
-            </h1>
-
-            <!-- poster -->
-            <div class="r">
-                <% if (details.poster_path) { %>
-                    <img src="https://image.tmdb.org/t/p/w500<%= details.poster_path %>"
-                        alt="<%= details.title %> poster" style="max-width:250px; border-radius:6px; margin:12px 0;">
-                    <% } %>
-
-                        <!-- <h2>Trailer</h2> -->
-                        <!-- <% if (trailer) { %>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/<%= trailer.key %>"
-                            allowfullscreen>
-                        </iframe>
-                        <% } else { %>
-                            <p>No trailer available.</p>
-                            <% } %> -->
-
-                        <% if (trailer) { %>
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/<%= trailer %>"
-                                allowfullscreen>
-                            </iframe>
-                            <% } else { %>
-                                <p>No trailer available.</p>
-                                <% } %>
-            </div>
-            <!-- basic info -->
-            <p><strong>Release Date:</strong>
-                <%= details.release_date %>
-            </p>
-            <p><strong>Rating:</strong>
-                <%= details.vote_average %>
-            </p>
-            <p><strong>Runtime:</strong>
-                <%= details.runtime %> minutes
-            </p>
+                    <div class="movie-info">
+                        <div class="movie-meta">
+        <span><strong>Director:</strong>
+            <%= director ? director.name : "N/A" %>
+        </span>
+        <span><strong>Runtime:</strong>
+            <%= details.runtime %> min
+        </span>
+        <span><strong>Release:</strong>
+            <%= details.release_date %>
+        </span>
+        <span><strong>Genres:</strong>
+            <% for (let i = 0; i < details.genres.length; i++) { %>
+                <%= details.genres[i].name %><%= i < details.genres.length - 1 ? ", " : "" %>
+            <% } %>
+        </span>
+        <span><p><strong>Language:</strong>
+  <%= languageNames[details.original_language] || details.original_language %>
+</p>
+</span>
+    </div>
 
 
-            <h2>Overview</h2>
-            <p>
-                <%= details.overview %>
-            </p>
+    
+<p><strong>Rating:</strong>
 
-            <h2>Cast</h2>
+  <% 
+    let stars = Math.round(details.vote_average / 2); 
+  %>
 
-            <div class="carousel">
+  <% for (let i = 1; i <= 5; i++) { %>
 
-                <div class="carousel-track" id="castTrack">
-                    <% for (let actor of cast) { %>
-                        <div class="slide">
-                            <% if (actor.profile_path) { %>
-                                <img src="https://image.tmdb.org/t/p/w200<%= actor.profile_path %>"
-                                    alt="<%= actor.name %>">
-                                <% } else { %>
-                                    <div class="no-img">No Image</div>
-                                    <% } %>
+    <% if (i <= stars) { %>
+      <span style="color: #f59e0b">★</span>
+    <% } else { %>
+      <span style="color: #ffffff">★</span>
+    <% } %>
 
-                                        <p class="actor-name">
-                                            <%= actor.name %>
-                                        </p>
-                                        <p class="actor-role">
-                                            <%= actor.character %>
-                                        </p>
-                        </div>
-                        <% } %>
+  <% } %>
+
+  <%= details.vote_average.toFixed(1) %> / 10
+</p>
+
+<!-- <p><strong>Language:</strong> <%= details.original_language %></p> -->
+ 
+<p><strong>Production Companies:</strong>
+  <%= details.production_companies.map(c => c.name).join(", ") %>
+</p>
+
+                        <p class="overview-text">
+                            <%= details.overview %>
+                        </p>
+                        <form action="/watchlist/add" method="POST" class="inline-form">
+  <input type="hidden" name="movie_id" value="<%= details.id %>">
+  <input type="hidden" name="title" value="<%= details.title %>">
+  <input type="hidden" name="poster_path" value="<%= details.poster_path || '' %>">
+  <input type="hidden" name="release_date" value="<%= details.release_date || '' %>">
+  <input type="hidden" name="overview" value="<%= details.overview || '' %>">
+
+  <button type="submit">Add to Watchlist</button>
+</form>
+                    </div>
                 </div>
-
-
             </div>
 
 
+           <div class="box"> <h2>Trailer</h2> <div class="trailer-wrapper"> <iframe width="800" height="400" src="https://www.youtube.com/embed/<%= trailer %>" allowfullscreen> </iframe> </div> </div>
+                <div class="box">
+  <h2>Cast</h2>
+
+  <div class="carousel-row">
+    <button id="prevCast" class="prev">‹</button>
+
+    <div class="carousel">
+      <div class="carousel-track" id="castTrack">
+        <% for (let actor of cast) { %>
+          <div class="slide">
+            <% if (actor.profile_path) { %>
+              <img src="https://image.tmdb.org/t/p/w200<%= actor.profile_path %>"
+                   alt="<%= actor.name %>">
+            <% } else { %>
+              <div class="no-img">No Image</div>
+            <% } %>
+
+            <p class="actor-name"><%= actor.name %></p>
+            <p class="actor-role"><%= actor.character %></p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <button id="nextCast" class="next">›</button>
+  </div>
+</div>
+</div>
+                </div>
+               
+
+</div>
 
         </main>
 
         <%- include('partials/footer.ejs') %>
+        <script>
+          const track = document.getElementById("castTrack");
+          const prevBtn = document.getElementById("prevCast");
+          const nextBtn = document.getElementById("nextCast");
+
+          prevBtn.onclick = function () {
+            track.scrollLeft -= 300;
+          };
+
+          nextBtn.onclick = function () {
+            track.scrollLeft += 300;
+          };
+        </script>
 </body>
 
 </html>

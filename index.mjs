@@ -490,6 +490,7 @@ app.get('/movie/:id', async (req, res) => {
   let detailsData = await details.json();
   let creditsData = await credits.json();
   //let videosData = await videos.json();
+  let director = creditsData.crew.find(person => person.job === "Director");
 
   //youtube api
   let query = encodeURIComponent(`${detailsData.title} official trailer`); //builds youtube search phrase
@@ -500,8 +501,10 @@ app.get('/movie/:id', async (req, res) => {
 
   //extracts video ID
   let trailer = ytData.items?.[0]?.id?.videoId || null; //checks items -> first item -> id -> videoId step by step, returns null if nothing is found
+  console.log(ytData);
+  console.log("Trailer ID:", trailer);
 
-  res.render('movieDetails.ejs', {details: detailsData, cast: creditsData.cast, trailer: trailer});
+  res.render('movieDetails.ejs', {details: detailsData, cast: creditsData.cast, trailer: trailer, director: director});
 });
 
 
