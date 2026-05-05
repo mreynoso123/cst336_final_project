@@ -28,6 +28,14 @@ app.use((req, res, next) => {
   next();
 });
 
+function isAuthenticated(req, res, next) {
+  if (req.session?.userId) {
+    return next();
+  }
+
+  return res.redirect('/login');
+}
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -417,6 +425,7 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
     overview,
     genre
   } = req.body;
+  const userId = req.session.userId;
 
   try {
     await pool.query(
@@ -435,7 +444,7 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
         posterPath = VALUES(posterPath),
         releaseDate = VALUES(releaseDate),
         overview = VALUES(overview)`,
-      [DEMO_USER_ID, movie_id, genre, poster_path, release_date, overview]
+      [userId, movie_id, genre, poster_path, release_date, overview]
     );
 
     res.redirect('/watchlist');
@@ -445,8 +454,9 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/watchlist', async (req, res) => {
+app.get('/watchlist', isAuthenticated, async (req, res) => {
   const { status, genre, minRating } = req.query;
+  const userId = req.session.userId;
 
   let sql = `
     SELECT 
@@ -465,7 +475,7 @@ app.get('/watchlist', async (req, res) => {
     JOIN movies m ON w.movieId = m.movieId
     WHERE w.userId = ?
   `;
-  const params = [DEMO_USER_ID];
+  const params = [userId];
 
   if (status) {
     sql += ` AND w.watchStatus = ?`;
@@ -491,7 +501,7 @@ app.get('/watchlist', async (req, res) => {
       `SELECT DISTINCT genre
        FROM watchlist
        WHERE userId = ? AND genre IS NOT NULL AND genre != ''`,
-      [DEMO_USER_ID]
+      [userId]
     );
 
     const genreOptions = genres
@@ -518,6 +528,7 @@ app.get('/watchlist', async (req, res) => {
 
 app.post('/watchlist/update', isAuthenticated, async (req, res) => {
   const { id, status, user_rating } = req.body;
+  const userId = req.session.userId;
 
   try {
     const parsedRating =
@@ -527,7 +538,7 @@ app.post('/watchlist/update', isAuthenticated, async (req, res) => {
       `UPDATE watchlist
        SET watchStatus = ?, rating = ?
        WHERE watchlistId = ? AND userId = ?`,
-      [status, parsedRating, id, DEMO_USER_ID]
+      [status, parsedRating, id, userId]
     );
 
     res.redirect('/watchlist');
@@ -539,12 +550,13 @@ app.post('/watchlist/update', isAuthenticated, async (req, res) => {
 
 app.post('/watchlist/delete', isAuthenticated, async (req, res) => {
   const { id } = req.body;
+  const userId = req.session.userId;
 
   try {
     await pool.query(
       `DELETE FROM watchlist
        WHERE watchlistId = ? AND userId = ?`,
-      [id, DEMO_USER_ID]
+      [id, userId]
     );
 
     res.redirect('/watchlist');
