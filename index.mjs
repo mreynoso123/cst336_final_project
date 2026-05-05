@@ -28,6 +28,16 @@ app.use((req, res, next) => {
   next();
 });
 
+
+function isAuthenticated(req, res, next) {
+  if (req.session?.userId) {
+    return next();
+  }
+
+  return res.redirect('/login');
+}
+
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
