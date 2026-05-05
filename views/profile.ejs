@@ -14,10 +14,11 @@
 
         <div class="card">
             <h2>Account</h2>
+
             <p><strong>Username:</strong> <%= userInfo.userName %></p>
-            <p><strong>Total Watchlists:</strong> <%= totalWatchlists %></p>
+            <p><strong>Movies in Watchlist:</strong> <%= totalMovies %></p>
             <p><strong>Marked Watched:</strong> <%= watchedCount %></p>
-            <p><strong>Rated Items:</strong> <%= ratedCount %></p>
+            <p><strong>Rated Movies:</strong> <%= ratedCount %></p>
 
             <div class="profile-actions">
                 <a href="/updateProfile" class="btn">Edit Profile</a>
@@ -25,28 +26,33 @@
         </div>
 
         <div class="card">
-            <h2>Your Watchlists</h2>
+            <h2>Your Watchlist Movies</h2>
 
             <% if (watchlistInfo.length === 0) { %>
-                <p class="muted">No watchlists found.</p>
+                <p class="muted">No movies found in your watchlist.</p>
             <% } %>
 
-            <% for (let watchlist of watchlistInfo) { %>
+            <% for (let movie of watchlistInfo) { %>
                 <div class="watchlist-summary-card">
                     <div class="watchlist-summary-row">
                         <div class="watchlist-summary-item">
-                            <span class="summary-label">Name</span>
-                            <span><%= watchlist.watchlistName %></span>
+                            <span class="summary-label">Movie</span>
+                            <span><%= movie.title %></span>
                         </div>
 
                         <div class="watchlist-summary-item">
                             <span class="summary-label">Status</span>
-                            <span><%= watchlist.watchStatus || 'Not set' %></span>
+                            <span><%= movie.watchStatus || 'Not set' %></span>
                         </div>
 
                         <div class="watchlist-summary-item">
                             <span class="summary-label">Rating</span>
-                            <span><%= watchlist.rating ?? 'Not rated' %></span>
+                            <span><%= movie.rating ?? 'Not rated' %></span>
+                        </div>
+
+                        <div class="watchlist-summary-item">
+                            <span class="summary-label">Genre</span>
+                            <span><%= movie.genre || 'No genre listed' %></span>
                         </div>
                     </div>
                 </div>

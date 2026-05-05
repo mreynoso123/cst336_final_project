@@ -16,75 +16,94 @@
             <p class="error-message"><%= error %></p>
         <% } %>
 
-        <form action="/updateProfile" method="POST" class="stack-form">
-            <input type="hidden" name="action" value="updateUser">
-
-            <label for="userName">Username:</label>
-            <input
-                id="userName"
-                type="text"
-                name="userName"
-                placeholder="Enter new user name"
-                value="<%= userInfo.userName %>"
-                required
-            >
-
-            <label for="password">Password:</label>
-            <input
-                id="password"
-                type="password"
-                name="password"
-                placeholder="Enter new password"
-                value=""
-                required
-            >
-
-            <button type="submit">Update Profile</button>
-        </form>
-
-        <div class="watchlist-section">
-            <h2>Your Watchlists</h2>
+        <div class="card">
+            <h2>Account</h2>
 
             <form action="/updateProfile" method="POST" class="stack-form">
-                <input type="hidden" name="action" value="createWatchlist">
+                <input type="hidden" name="action" value="updateUser">
 
-                <label for="newWatchlistName">Create New Watchlist:</label>
+                <label for="userName">Username:</label>
                 <input
-                    id="newWatchlistName"
+                    id="userName"
                     type="text"
-                    name="watchlistName"
-                    placeholder="Enter watchlist name"
+                    name="userName"
+                    value="<%= userInfo.userName %>"
                     required
                 >
 
-                <button type="submit">Create Watchlist</button>
+                <label for="password">New Password:</label>
+                <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    placeholder="Enter new password"
+                    required
+                >
+
+                <button type="submit">Update Profile</button>
             </form>
+        </div>
 
+        <div class="card">
+            <h2>Edit Watchlist Movies</h2>
+        
             <% if (watchlistInfo.length === 0) { %>
-                <p class="muted">No watchlists found.</p>
+                <p class="muted">No movies found in your watchlist.</p>
             <% } %>
-
-            <% for (let watchlist of watchlistInfo) { %>
-                <div class="watchlist-row">
-                    <form action="/updateProfile" method="POST" class="watchlist-form">
-                        <input type="hidden" name="action" value="updateWatchlist">
-                        <input type="hidden" name="watchlistId" value="<%= watchlist.watchlistId %>">
-
-                        <input
-                            type="text"
-                            name="watchlistName"
-                            value="<%= watchlist.watchlistName %>"
-                            required
-                        >
-
-                        <button type="submit">Update Watchlist Name</button>
+        
+            <% for (let movie of watchlistInfo) { %>
+                <div class="edit-movie-card">
+                    <form action="/updateProfile" method="POST" class="edit-movie-form">
+                        <input type="hidden" name="action" value="updateMovie">
+                        <input type="hidden" name="watchlistId" value="<%= movie.watchlistId %>">
+        
+                        <div class="edit-movie-grid">
+                            <div class="edit-movie-field movie-title-field">
+                                <span class="summary-label">Movie</span>
+                                <span><%= movie.title %></span>
+                            </div>
+        
+                            <div class="edit-movie-field">
+                                <label class="summary-label" for="watchStatus-<%= movie.watchlistId %>">Status</label>
+                                <select id="watchStatus-<%= movie.watchlistId %>" name="watchStatus">
+                                    <option value="Want to Watch" <%= movie.watchStatus === 'Want to Watch' ? 'selected' : '' %>>
+                                        Want to Watch
+                                    </option>
+                                    <option value="Watched" <%= movie.watchStatus === 'Watched' ? 'selected' : '' %>>
+                                        Watched
+                                    </option>
+                                </select>
+                            </div>
+        
+                            <div class="edit-movie-field">
+                                <label class="summary-label" for="rating-<%= movie.watchlistId %>">Rating</label>
+                                <input
+                                    id="rating-<%= movie.watchlistId %>"
+                                    type="number"
+                                    name="rating"
+                                    min="1"
+                                    max="10"
+                                    value="<%= movie.rating ?? '' %>"
+                                    placeholder="Not rated"
+                                >
+                            </div>
+        
+                            <div class="edit-movie-field genre-field">
+                                <span class="summary-label">Genre</span>
+                                <span><%= movie.genre || 'No genre listed' %></span>
+                            </div>
+        
+                            <div class="edit-movie-actions">
+                                <button type="submit">Update Movie</button>
+                            </div>
+                        </div>
                     </form>
-
-                    <form action="/updateProfile" method="POST" class="watchlist-form">
-                        <input type="hidden" name="action" value="deleteWatchlist">
-                        <input type="hidden" name="watchlistId" value="<%= watchlist.watchlistId %>">
-
-                        <button type="submit" class="danger-btn">Delete Watchlist</button>
+        
+                    <form action="/updateProfile" method="POST" class="remove-movie-form">
+                        <input type="hidden" name="action" value="deleteMovie">
+                        <input type="hidden" name="watchlistId" value="<%= movie.watchlistId %>">
+        
+                        <button type="submit" class="danger-btn">Remove from Watchlist</button>
                     </form>
                 </div>
             <% } %>

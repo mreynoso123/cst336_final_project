@@ -378,6 +378,78 @@ button:hover,
   color: #273245;
 }
 
+.edit-movie-card {
+  background: var(--surface-soft);
+  border: 1px solid #d8cebf;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.edit-movie-form {
+  margin: 0;
+}
+
+.edit-movie-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 180px 150px 1.8fr 150px;
+  gap: 18px;
+  align-items: center;
+}
+
+.edit-movie-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-movie-field input,
+.edit-movie-field select {
+  width: 100%;
+  min-width: 0;
+}
+
+.movie-title-field span:last-child,
+.genre-field span:last-child {
+  line-height: 1.35;
+}
+
+.edit-movie-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.remove-movie-form {
+  margin-top: 14px;
+}
+
+.remove-movie-form button {
+  width: auto;
+}
+
+@media (max-width: 900px) {
+  .edit-movie-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .genre-field,
+  .edit-movie-actions {
+    grid-column: 1 / -1;
+  }
+
+  .edit-movie-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .edit-movie-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 @keyframes rise-in {
   from {
     opacity: 0;
